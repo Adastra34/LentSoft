@@ -1,4 +1,1 @@
-sapa
-ahora, cuando nos metamos a un producto, que nos muestre las fotos, la descripcion del producto, el precio, garantia, sitio y que abajo me diga algo hacerca de las gafas, montura, color montura, lentes, detalles, y mas abajo de eso que diga una nueva seccion de, productos parecidos.
-Despues de hacer todo eso, dame un boton al lado que diga muestra de montura y despues ponga una alerta de querer activar la camara o no 
-Basate en la imaen como referencia
+Ahora enlaza todos los productos en la pagina de inicio y de la tienda (y pon todos los productos en precios colombianos) con productos que interactuen con otra vista asi como creaste la vista de producto, y que no muestre el icono flotante sobre la imagen de "PROBAR MODELO". Crea otra vista que cuando se inicie sesion se muestre un dashboard dependiendo si eres un usuario normal (que tenga un apartado para agendar cita, citas agendadas, productos favoritos etc...) y otra de administrador (donde pueda gestionar el inventario, las citas medicas, gestionar trabajadores, optometras, usuarios, facturas, modificar los productos). Organiza mejor la pagina y coloca imagenes que correspondan con la descripcion.
