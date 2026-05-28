@@ -1,0 +1,192 @@
+<main style="padding: 2rem 0; min-height: 70vh;">
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Mi Cuenta</h1>
+
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col col-3">
+                <div class="card">
+                    <h3 class="card-title">Menú</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 1rem;">
+                            <a href="#" class="menu-link active" data-section="perfil" style="display: block; padding: 0.75rem; border-radius: 0.5rem; background-color: var(--purple-100); color: var(--purple-700); font-weight: 600;">
+                                Mi Perfil
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <a href="#" class="menu-link" data-section="pedidos" style="display: block; padding: 0.75rem; border-radius: 0.5rem; color: var(--gray-700);">
+                                Mis Pedidos
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 1rem;">
+                            <a href="#" class="menu-link" data-section="citas" style="display: block; padding: 0.75rem; border-radius: 0.5rem; color: var(--gray-700);">
+                                Mis Citas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="menu-link" data-section="configuracion" style="display: block; padding: 0.75rem; border-radius: 0.5rem; color: var(--gray-700);">
+                                Configuración
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col col-9">
+                <div id="userContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+const user = AuthService.getCurrentUser();
+const menuLinks = document.querySelectorAll('.menu-link');
+const userContent = document.getElementById('userContent');
+
+function loadSection(sectionName) {
+    switch(sectionName) {
+        case 'perfil':
+            userContent.innerHTML = `
+                <div class="card">
+                    <h3 class="card-title">Información Personal</h3>
+                    <form class="form-group">
+                        <div class="form-group">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-input" value="${user.nombre}" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-input" value="${user.email}" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-input" placeholder="310 123 4567" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+            `;
+            break;
+        case 'pedidos':
+            userContent.innerHTML = `
+                <div class="card">
+                    <h3 class="card-title">Mis Pedidos</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Pedido #</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#12345</td>
+                                <td>2026-05-15</td>
+                                <td>$2,500</td>
+                                <td><span class="badge badge-success">Entregado</span></td>
+                                <td><button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>#12346</td>
+                                <td>2026-05-20</td>
+                                <td>$1,800</td>
+                                <td><span class="badge badge-info">En Camino</span></td>
+                                <td><button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+        case 'citas':
+            userContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Mis Citas</h3>
+                        <button class="btn btn-primary">+ Nueva Cita</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Servicio</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-05-25</td>
+                                <td>10:00 AM</td>
+                                <td>Examen de vista</td>
+                                <td><span class="badge badge-info">Confirmada</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-02</td>
+                                <td>2:30 PM</td>
+                                <td>Ajuste de lentes</td>
+                                <td><span class="badge badge-warning">Pendiente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+        case 'configuracion':
+            userContent.innerHTML = `
+                <div class="card">
+                    <h3 class="card-title">Configuración de Cuenta</h3>
+                    <form class="form-group">
+                        <div class="form-group">
+                            <label class="form-label">Contraseña Actual</label>
+                            <input type="password" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirmar Nueva Contraseña</label>
+                            <input type="password" class="form-input" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+                    </form>
+                </div>
+            `;
+            break;
+    }
+}
+
+menuLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all links
+        menuLinks.forEach(l => {
+            l.style.backgroundColor = 'transparent';
+            l.style.color = 'var(--gray-700)';
+            l.style.fontWeight = '400';
+            l.classList.remove('active');
+        });
+        
+        // Add active class to clicked link
+        this.style.backgroundColor = 'var(--purple-100)';
+        this.style.color = 'var(--purple-700)';
+        this.style.fontWeight = '600';
+        this.classList.add('active');
+        
+        // Load section content
+        loadSection(this.getAttribute('data-section'));
+    });
+});
+
+// Load initial section
+loadSection('perfil');
+</script>

@@ -1,0 +1,88 @@
+<main style="padding: 2rem 0; min-height: 70vh;">
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Nuestra Tienda</h1>
+
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="row">
+                <div class="col col-4">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select">
+                            <option>Todas las categorías</option>
+                            <option>Lentes de Sol</option>
+                            <option>Lentes Graduados</option>
+                            <option>Lentes de Contacto</option>
+                            <option>Accesorios</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="form-group">
+                        <label class="form-label">Marca</label>
+                        <select class="form-select">
+                            <option>Todas las marcas</option>
+                            <option>Ray-Ban</option>
+                            <option>Oakley</option>
+                            <option>Acuvue</option>
+                            <option>LentSoft</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="form-group">
+                        <label class="form-label">Precio</label>
+                        <select class="form-select">
+                            <option>Todos los precios</option>
+                            <option>Menos de $1,000</option>
+                            <option>$1,000 - $2,000</option>
+                            <option>Más de $2,000</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="row" id="productsGrid">
+            <!-- Products will be loaded here -->
+        </div>
+    </div>
+</main>
+
+<script>
+const products = [
+    { id: 1, nombre: 'Ray-Ban Aviator', precio: 2500, categoria: 'Lentes de Sol', marca: 'Ray-Ban', stock: 15 },
+    { id: 2, nombre: 'Oakley Sport', precio: 1800, categoria: 'Lentes de Sol', marca: 'Oakley', stock: 8 },
+    { id: 3, nombre: 'Lentes Graduados Classic', precio: 1200, categoria: 'Lentes Graduados', marca: 'LentSoft', stock: 20 },
+    { id: 4, nombre: 'Lentes de Contacto Acuvue', precio: 450, categoria: 'Lentes de Contacto', marca: 'Acuvue', stock: 50 },
+    { id: 5, nombre: 'Montura Deportiva', precio: 900, categoria: 'Accesorios', marca: 'LentSoft', stock: 12 },
+    { id: 6, nombre: 'Estuche Premium', precio: 150, categoria: 'Accesorios', marca: 'LentSoft', stock: 30 }
+];
+
+function loadProducts() {
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = products.map(product => `
+        <div class="col col-4">
+            <div class="card">
+                <div style="background-color: var(--purple-100); height: 200px; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center;">
+                    <p style="color: var(--purple-700); font-size: 3rem;">📷</p>
+                </div>
+                <h4 style="color: var(--purple-900); margin-bottom: 0.5rem;">${product.nombre}</h4>
+                <p style="color: var(--gray-600); margin-bottom: 0.5rem;">${product.marca}</p>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--purple-700); margin: 1rem 0;">
+                    $${product.precio.toLocaleString()}
+                </p>
+                <p style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 1rem;">
+                    Stock disponible: ${product.stock}
+                </p>
+                <button class="btn btn-primary" style="width: 100%;">
+                    Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+loadProducts();
+</script>

@@ -1,0 +1,185 @@
+<main class="min-h-screen flex items-center justify-center px-6 py-12" style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem;">
+    <div class="container" style="max-width: 600px;">
+        <div class="card" style="padding: 2rem;">
+            <h1 class="text-center mb-4" style="text-align: center; margin-bottom: 2rem; color: var(--purple-900);">
+                CREAR CUENTA
+            </h1>
+
+            <form id="registerForm" class="space-y-6" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Name Field -->
+                <div class="form-group">
+                    <label for="nombre" class="form-label">Nombre Completo</label>
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        placeholder="Juan Pérez"
+                        required
+                        class="form-input"
+                    />
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="registerEmail" class="form-label">Correo Electrónico</label>
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        name="email"
+                        placeholder="correo@ejemplo.com"
+                        required
+                        class="form-input"
+                    />
+                </div>
+
+                <!-- Phone Field -->
+                <div class="form-group">
+                    <label for="telefono" class="form-label">Teléfono</label>
+                    <input
+                        type="tel"
+                        id="telefono"
+                        name="telefono"
+                        placeholder="310 123 4567"
+                        required
+                        class="form-input"
+                    />
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="registerPassword" class="form-label">Contraseña</label>
+                    <div style="position: relative;">
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            name="password"
+                            placeholder="Mínimo 8 caracteres"
+                            required
+                            class="form-input"
+                            style="padding-right: 3rem;"
+                        />
+                        <button
+                            type="button"
+                            id="toggleRegisterPassword"
+                            style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400);"
+                        >
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Confirma tu contraseña"
+                        required
+                        class="form-input"
+                    />
+                </div>
+
+                <!-- Terms Checkbox -->
+                <div style="display: flex; align-items: start; gap: 0.75rem;">
+                    <input
+                        type="checkbox"
+                        id="terms"
+                        name="terms"
+                        required
+                        style="margin-top: 0.25rem; width: 1.125rem; height: 1.125rem;"
+                    />
+                    <label for="terms" style="color: var(--gray-700); font-size: 0.875rem;">
+                        Acepto los <a href="#" style="color: var(--purple-700); text-decoration: underline;">términos y condiciones</a>
+                        y la <a href="#" style="color: var(--purple-700); text-decoration: underline;">política de privacidad</a>
+                    </label>
+                </div>
+
+                <!-- Error Message -->
+                <div id="registerError" class="alert alert-error" style="display: none;"></div>
+
+                <!-- Success Message -->
+                <div id="registerSuccess" class="alert alert-success" style="display: none;"></div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Crear Cuenta
+                </button>
+
+                <!-- Login Link -->
+                <div class="text-center" style="text-align: center;">
+                    <p style="color: var(--gray-600);">
+                        ¿Ya tienes cuenta?
+                        <a href="#" onclick="router.navigate('/login'); return false;" style="color: var(--purple-700); text-decoration: underline; font-weight: 600;">
+                            Iniciar Sesión
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+// Handle register form submission
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('nombre').value;
+    const email = document.getElementById('registerEmail').value;
+    const telefono = document.getElementById('telefono').value;
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const terms = document.getElementById('terms').checked;
+    
+    const errorDiv = document.getElementById('registerError');
+    const successDiv = document.getElementById('registerSuccess');
+    
+    // Hide previous messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    // Validations
+    if (password.length < 8) {
+        errorDiv.textContent = 'La contraseña debe tener al menos 8 caracteres';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Las contraseñas no coinciden';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!terms) {
+        errorDiv.textContent = 'Debes aceptar los términos y condiciones';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // Register user
+    const user = await AuthService.register({ nombre, email, telefono });
+    
+    if (user) {
+        successDiv.textContent = 'Cuenta creada exitosamente. Redirigiendo...';
+        successDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            router.navigate('/dashboard');
+        }, 2000);
+    } else {
+        errorDiv.textContent = 'Error al crear la cuenta. Por favor intenta nuevamente.';
+        errorDiv.style.display = 'block';
+    }
+});
+
+// Toggle password visibility
+document.getElementById('toggleRegisterPassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('registerPassword');
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    this.textContent = type === 'password' ? '👁️' : '🙈';
+});
+</script>

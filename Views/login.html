@@ -1,0 +1,114 @@
+<main class="min-h-screen flex items-center justify-center px-6 py-12" style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem;">
+    <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden" style="width: 100%; max-width: 72rem; background: white; border-radius: 1.5rem; box-shadow: var(--shadow-2xl); overflow: hidden;">
+        <div class="grid md:grid-cols-2 gap-0" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;">
+            
+            <!-- Image Section -->
+            <div class="hidden md:block relative h-full min-h-[600px]" style="position: relative; min-height: 600px;">
+                <img src="images/login-glasses.jpg" alt="Colección de gafas elegantes de diferentes marcas" style="width: 100%; height: 100%; object-fit: cover;">
+                <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(88, 28, 135, 0.2), transparent);"></div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="flex items-center justify-center p-8 md:p-12 lg:p-16" style="display: flex; align-items: center; justify-content: center; padding: 4rem;">
+                <div class="w-full max-w-md" style="width: 100%; max-width: 28rem;">
+                    <h1 class="text-center mb-8 tracking-tight text-purple-900" style="text-align: center; margin-bottom: 2rem; color: var(--purple-900); font-size: 2rem; font-weight: 700;">
+                        INICIO DE SESIÓN
+                    </h1>
+
+                    <form id="loginForm" class="space-y-6" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <label for="email" class="sr-only">Correo electrónico</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Correo electrónico"
+                                required
+                                class="form-input"
+                            />
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <label for="password" class="sr-only">Contraseña</label>
+                            <div style="position: relative;">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Contraseña"
+                                    required
+                                    class="form-input"
+                                    style="padding-right: 3rem;"
+                                />
+                                <button
+                                    type="button"
+                                    id="togglePassword"
+                                    style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400);"
+                                >
+                                    👁️
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Forgot Password Link -->
+                        <div style="text-align: left;">
+                            <a href="#" onclick="router.navigate('/recuperar-contrasena'); return false;" style="color: var(--purple-700); text-decoration: underline;">
+                                ¿Olvidaste tu contraseña?
+                            </a>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="loginError" class="alert alert-error" style="display: none;"></div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Iniciar sesión
+                        </button>
+
+                        <!-- Create Account Link -->
+                        <div class="text-center pt-4" style="text-align: center; padding-top: 1rem;">
+                            <a href="#" onclick="router.navigate('/registro'); return false;" style="color: var(--purple-700); text-decoration: underline;">
+                                Crear cuenta
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+// Handle login form submission
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    const user = await AuthService.login(email, password);
+    
+    if (user) {
+        // Redirect based on role
+        if (user.role === 'admin') {
+            router.navigate('/dashboard-admin');
+        } else {
+            router.navigate('/dashboard');
+        }
+    } else {
+        errorDiv.textContent = 'Credenciales inválidas. Intenta nuevamente.';
+        errorDiv.style.display = 'block';
+    }
+});
+
+// Toggle password visibility
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    this.textContent = type === 'password' ? '👁️' : '🙈';
+});
+</script>

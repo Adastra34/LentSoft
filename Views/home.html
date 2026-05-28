@@ -1,0 +1,99 @@
+<main id="inicio">
+    <!-- Hero Section -->
+    <section style="background: linear-gradient(135deg, var(--purple-700), var(--purple-900)); color: white; padding: 6rem 0; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 3rem; margin-bottom: 1.5rem; color: white;">Bienvenido a LentSoft</h1>
+            <p style="font-size: 1.25rem; margin-bottom: 2rem; color: var(--purple-100);">
+                Tu tienda óptica de confianza. Encuentra los mejores lentes y gafas.
+            </p>
+            <button onclick="router.navigate('/tienda')" class="btn btn-primary" style="background: white; color: var(--purple-700); font-size: 1.125rem; padding: 1rem 2rem;">
+                Ver Productos
+            </button>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section style="padding: 4rem 0;">
+        <div class="container">
+            <h2 class="text-center mb-4" style="text-align: center; margin-bottom: 2rem;">Categorías Populares</h2>
+            <div class="row">
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <h3 style="color: var(--purple-700);">Lentes de Sol</h3>
+                        <p>Protección y estilo para tus ojos</p>
+                        <button onclick="router.navigate('/tienda')" class="btn btn-outline">Ver Más</button>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <h3 style="color: var(--purple-700);">Lentes Graduados</h3>
+                        <p>Claridad y comodidad garantizada</p>
+                        <button onclick="router.navigate('/tienda')" class="btn btn-outline">Ver Más</button>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <h3 style="color: var(--purple-700);">Lentes de Contacto</h3>
+                        <p>Libertad y visión perfecta</p>
+                        <button onclick="router.navigate('/tienda')" class="btn btn-outline">Ver Más</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Best Sellers Section -->
+    <section style="padding: 4rem 0; background-color: var(--purple-50);">
+        <div class="container">
+            <h2 class="text-center mb-4" style="text-align: center; margin-bottom: 2rem;">Productos Más Vendidos</h2>
+            <div class="row" id="bestSellersContainer">
+                <!-- Products will be loaded here by JavaScript -->
+                <div class="text-center" style="width: 100%; padding: 2rem;">
+                    <p style="color: var(--gray-600);">Cargando productos...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 4rem 0; text-align: center;">
+        <div class="container">
+            <h2 style="color: white; margin-bottom: 1rem;">¿Listo para mejorar tu visión?</h2>
+            <p style="font-size: 1.125rem; margin-bottom: 2rem; color: var(--purple-100);">
+                Únete a miles de clientes satisfechos
+            </p>
+            <button onclick="router.navigate('/registro')" class="btn btn-primary" style="background: white; color: var(--purple-700); padding: 1rem 2rem;">
+                Registrarse Ahora
+            </button>
+        </div>
+    </section>
+</main>
+
+<script>
+// Load best sellers (mock data)
+function loadBestSellers() {
+    const products = [
+        { id: 1, nombre: 'Ray-Ban Aviator', precio: 2500, imagen: 'product1.jpg' },
+        { id: 2, nombre: 'Oakley Sport', precio: 1800, imagen: 'product2.jpg' },
+        { id: 3, nombre: 'Lentes Graduados Classic', precio: 1200, imagen: 'product3.jpg' }
+    ];
+
+    const container = document.getElementById('bestSellersContainer');
+    container.innerHTML = products.map(product => `
+        <div class="col col-4">
+            <div class="card text-center">
+                <h4 style="color: var(--purple-900); margin-bottom: 0.5rem;">${product.nombre}</h4>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--purple-700); margin: 1rem 0;">
+                    $${product.precio.toLocaleString()}
+                </p>
+                <button onclick="router.navigate('/tienda')" class="btn btn-primary">
+                    Ver Detalles
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load products when page loads
+setTimeout(loadBestSellers, 100);
+</script>

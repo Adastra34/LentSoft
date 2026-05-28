@@ -1,0 +1,275 @@
+<main style="padding: 2rem 0; min-height: 70vh;">
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Dashboard de Administrador</h1>
+
+        <!-- Stats Cards -->
+        <div class="row" style="margin-bottom: 3rem;">
+            <div class="col col-3">
+                <div class="card text-center" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white;">
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Usuarios</h3>
+                    <p style="font-size: 2.5rem; font-weight: 700; margin: 0;">156</p>
+                </div>
+            </div>
+            <div class="col col-3">
+                <div class="card text-center" style="background: linear-gradient(135deg, var(--info), #2563eb); color: white;">
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Productos</h3>
+                    <p style="font-size: 2.5rem; font-weight: 700; margin: 0;">42</p>
+                </div>
+            </div>
+            <div class="col col-3">
+                <div class="card text-center" style="background: linear-gradient(135deg, var(--success), #059669); color: white;">
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Ventas</h3>
+                    <p style="font-size: 2.5rem; font-weight: 700; margin: 0;">238</p>
+                </div>
+            </div>
+            <div class="col col-3">
+                <div class="card text-center" style="background: linear-gradient(135deg, var(--warning), #d97706); color: white;">
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Ingresos</h3>
+                    <p style="font-size: 2.5rem; font-weight: 700; margin: 0;">$125K</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div style="border-bottom: 2px solid var(--purple-200); margin-bottom: 2rem;">
+            <div style="display: flex; gap: 1rem;">
+                <button class="tab-btn active" data-tab="productos" style="padding: 1rem 2rem; border: none; background: none; border-bottom: 3px solid var(--purple-600); color: var(--purple-700); font-weight: 600; cursor: pointer;">
+                    Productos
+                </button>
+                <button class="tab-btn" data-tab="usuarios" style="padding: 1rem 2rem; border: none; background: none; border-bottom: 3px solid transparent; color: var(--gray-600); font-weight: 600; cursor: pointer;">
+                    Usuarios
+                </button>
+                <button class="tab-btn" data-tab="ventas" style="padding: 1rem 2rem; border: none; background: none; border-bottom: 3px solid transparent; color: var(--gray-600); font-weight: 600; cursor: pointer;">
+                    Ventas
+                </button>
+                <button class="tab-btn" data-tab="inventario" style="padding: 1rem 2rem; border: none; background: none; border-bottom: 3px solid transparent; color: var(--gray-600); font-weight: 600; cursor: pointer;">
+                    Inventario
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tabContent">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</main>
+
+<script>
+// Tab switching functionality
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContent = document.getElementById('tabContent');
+
+function loadTabContent(tabName) {
+    switch(tabName) {
+        case 'productos':
+            tabContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Gestión de Productos</h3>
+                        <button class="btn btn-primary">+ Nuevo Producto</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Ray-Ban Aviator</td>
+                                <td>$2,500</td>
+                                <td>15</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">Editar</button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Eliminar</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Oakley Sport</td>
+                                <td>$1,800</td>
+                                <td>8</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">Editar</button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Eliminar</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Lentes Graduados Classic</td>
+                                <td>$1,200</td>
+                                <td>20</td>
+                                <td><span class="badge badge-success">Activo</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">Editar</button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Eliminar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+        case 'usuarios':
+            tabContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Gestión de Usuarios</h3>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Juan Pérez</td>
+                                <td>juan@example.com</td>
+                                <td><span class="badge badge-purple">Usuario</span></td>
+                                <td>2026-01-15</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>María García</td>
+                                <td>maria@example.com</td>
+                                <td><span class="badge badge-purple">Usuario</span></td>
+                                <td>2026-02-20</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+        case 'ventas':
+            tabContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Registro de Ventas</h3>
+                        <button class="btn btn-primary">+ Nueva Venta</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>V-001</td>
+                                <td>Carlos Ruiz</td>
+                                <td>2026-05-20</td>
+                                <td>$3,500</td>
+                                <td><span class="badge badge-success">Completado</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>V-002</td>
+                                <td>Ana López</td>
+                                <td>2026-05-21</td>
+                                <td>$1,800</td>
+                                <td><span class="badge badge-warning">Pendiente</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+        case 'inventario':
+            tabContent.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Control de Inventario</h3>
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Advertencia:</strong> 3 productos con stock bajo
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ray-Ban Aviator</td>
+                                <td>15</td>
+                                <td>10</td>
+                                <td><span class="badge badge-success">OK</span></td>
+                            </tr>
+                            <tr>
+                                <td>Oakley Sport</td>
+                                <td>8</td>
+                                <td>10</td>
+                                <td><span class="badge badge-warning">Bajo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Lentes de Contacto</td>
+                                <td>3</td>
+                                <td>15</td>
+                                <td><span class="badge badge-error">Crítico</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            break;
+    }
+}
+
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        tabButtons.forEach(b => {
+            b.style.borderBottomColor = 'transparent';
+            b.style.color = 'var(--gray-600)';
+            b.classList.remove('active');
+        });
+
+        // Add active class to clicked button
+        this.style.borderBottomColor = 'var(--purple-600)';
+        this.style.color = 'var(--purple-700)';
+        this.classList.add('active');
+
+        // Load tab content
+        loadTabContent(this.getAttribute('data-tab'));
+    });
+});
+
+// Load initial tab
+loadTabContent('productos');
+</script>
