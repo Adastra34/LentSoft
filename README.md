@@ -1,10 +1,9 @@
-# 🚀 LentSoft - Plataforma E-commerce Óptico
+LentSoft - Plataforma E-commerce Óptico
 
-## 📋 Descripción
+Descripción
 
-LentSoft es una plataforma de comercio electrónico especializada en productos ópticos, desarrollada con **HTML, CSS y JavaScript Vanilla** siguiendo el patrón de arquitectura **MVC (Modelo-Vista-Controlador)**.
+LentSoft es una plataforma de comercio electrónico especializada en productos ópticos, desarrollada con **HTML, CSS y JavaScript Vanilla** siguiendo el patrón de arquitectura MVC (Modelo-Vista-Controlador).
 
----
 
 ## 🗂️ Estructura del Proyecto
 
