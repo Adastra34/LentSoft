@@ -55,28 +55,60 @@ LentSoft/
 
 ## 🚀 Cómo Ejecutar el Proyecto
 
-### **Opción 1: Servidor Local Simple**
+Este repositorio contiene la versión moderna en **React (Vite + TypeScript)** configurada de forma predeterminada, e incluye también los archivos de una versión en **HTML/JS Vanilla**. A continuación se detalla cómo ejecutar cada una:
 
-Usa cualquier servidor HTTP local:
+### ⚡ Opción 1: Ejecutar la versión React (Recomendada)
+Esta versión utiliza React 18, Vite, TypeScript y Tailwind CSS v4. Requiere **Node.js** instalado en el sistema.
 
+#### **Paso 1: Instalar dependencias**
+Abre una terminal en la raíz del proyecto y ejecuta:
 ```bash
-# Usando Python 3
-python -m http.server 8000
-
-# Usando Node.js (http-server)
-npx http-server -p 8000
-
-# Usando PHP
-php -S localhost:8000
+pnpm install
+# O si usas npm:
+npm install
 ```
+> [!IMPORTANT]
+> **Nota para Windows (PowerShell):** Si te aparece un error indicando que *"la ejecución de scripts está deshabilitada en este sistema"* (`SecurityError`), puedes evadir esta restricción utilizando el comando directo con el sufijo `.cmd`:
+> ```powershell
+> pnpm.cmd install
+> # O con npm:
+> npm.cmd install
+> ```
 
-Luego abre tu navegador en: **http://localhost:8000**
+#### **Paso 2: Iniciar el servidor de desarrollo**
+Ejecuta el servidor local de Vite:
+```bash
+pnpm run dev
+# O si usas npm:
+npm run dev
+```
+> [!IMPORTANT]
+> **Nota para Windows (PowerShell):** Si se bloquea la ejecución por políticas de scripts, ejecuta:
+> ```powershell
+> pnpm.cmd run dev
+> # O con npm:
+> npm.cmd run dev
+> ```
 
-### **Opción 2: Live Server (Visual Studio Code)**
+#### **Paso 3: Abrir en el navegador**
+Una vez que el servidor esté listo, abre tu navegador en la URL indicada por la consola:
+👉 **`http://localhost:5173`**
 
-1. Instala la extensión **Live Server** en VS Code
-2. Haz clic derecho en `index.html`
-3. Selecciona **"Open with Live Server"**
+---
+
+### 📄 Opción 2: Ejecutar la versión en JavaScript Vanilla (Sin Node.js)
+Si prefieres ejecutar el proyecto utilizando código HTML/JS tradicional sin instalar dependencias:
+
+1. **Modificar el archivo raíz `index.html`:** Cambia el contenido del archivo `index.html` en la raíz para que en lugar de apuntar a `/src/main.tsx`, apunte a los estilos de `css/styles.css` y cargue los archivos Javascript correspondientes en la carpeta `js/` (además de los modelos y controladores de la raíz).
+2. **Iniciar el servidor local estático:**
+   ```bash
+   # Usando Node.js (http-server)
+   npx http-server -p 8000
+   
+   # O usando Python 3
+   python -m http.server 8000
+   ```
+3. Abre tu navegador en **`http://localhost:8000`**.
 
 ---
 
