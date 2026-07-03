@@ -1,7 +1,16 @@
+/**
+ * LoginPage.tsx
+ * Vista de inicio de sesión de LentSoft.
+ * Redirige según el rol:
+ *  - admin     → /dashboard-admin
+ *  - optometra → /dashboard-optometra
+ *  - usuario   → / (catálogo principal)
+ */
 import { useState } from "react";
 import { Link, useOutletContext, useNavigate } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../controllers/contexts/AuthContext";
+import { notify } from "../../utils/notify";
 
 const loginImage = "https://images.unsplash.com/photo-1776890948428-5cb3e62cc680?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxlbGVnYW50JTIwZXllZ2xhc3NlcyUyMGNvbGxlY3Rpb24lMjBvcHRpY2FsJTIwc3RvcmV8ZW58MXx8fHwxNzc5OTE2MDM0fDA&ixlib=rb-4.1.0&q=80&w=1080";
 
@@ -22,18 +31,24 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
+
     const success = await login(email, password);
-    
+
     if (success) {
-      // Redirect based on user role
+      /* Redirigir según el rol del usuario */
       if (email === "admin@lentsoft.com") {
         navigate("/dashboard-admin");
+      } else if (email === "optometra@gmail.com") {
+        navigate("/dashboard-optometra");
       } else {
-        navigate("/dashboard");
+        /* Usuarios regulares van al catálogo principal */
+        notify.success("¡Bienvenido/a! Has iniciado sesión correctamente.");
+        navigate("/");
       }
     } else {
-      setError("Credenciales inválidas. Intenta nuevamente.");
+      const msg = "Credenciales inválidas. Por favor verifica tu correo y contraseña.";
+      setError(msg);
+      notify.error(msg);
     }
   };
 

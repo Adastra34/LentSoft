@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type UserRole = "usuario" | "admin";
+export type UserRole = "usuario" | "admin" | "optometra";
 
 export interface User {
   id: string;
@@ -33,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         nombre: "Administrador",
         role: "admin"
+      });
+      return true;
+    } else if (email === "optometra@gmail.com" && password === "12345") {
+      setUser({
+        id: "optometra-001",
+        email,
+        nombre: "Ana Gómez Torres",
+        role: "optometra"
       });
       return true;
     } else if (email && password) {

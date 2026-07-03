@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notify } from "../../utils/notify";
 import { useParams, useOutletContext, Link, useNavigate } from "react-router";
 import {
   ChevronLeft,
@@ -113,7 +114,7 @@ export function ProductoPage() {
         // Store stream for later cleanup
         (window as any).cameraStream = stream;
       } catch (error) {
-        alert("No se pudo acceder a la cámara. Por favor, verifica los permisos.");
+        notify.error("No se pudo acceder a la cámara. Por favor, verifica los permisos en tu navegador.");
       }
     } else {
       // Stop camera

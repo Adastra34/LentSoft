@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useOutletContext } from "react-router";
 import {
   Package,
@@ -7,7 +7,6 @@ import {
   FileText,
   TrendingUp,
   Plus,
-  Search,
   Edit,
   Trash2,
   Eye,
@@ -30,8 +29,17 @@ import {
   History,
   ArrowDownCircle,
   ArrowUpCircle,
+  Menu,
+  ChevronDown,
+  ChevronUp,
+  LayoutDashboard,
+  UserCheck,
+  ImagePlus,
+  Store,
+  Warehouse,
 } from "lucide-react";
 import { formatPrice } from "../../models/data/products";
+import { notify } from "../../utils/notify";
 
 const PAGE_SIZE = 5;
 
@@ -354,8 +362,12 @@ const inputCls = "w-full px-4 py-2.5 rounded-xl border-2 border-purple-200 focus
 
 export function DashboardAdminPage() {
   const { textSize } = useOutletContext<OutletContext>();
-  const [activeTab, setActiveTab] = useState<"general" | "inventario" | "citas" | "usuarios" | "trabajadores" | "facturas" | "ventas">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "inventario" | "citas" | "usuarios" | "facturas" | "ventas">("general");
   const [inventorySubTab, setInventorySubTab] = useState<"productos" | "proveedores" | "historial">("productos");
+  const [usersSubTab, setUsersSubTab] = useState<"clientes" | "trabajadores">("clientes");
+  const [inventoryExpanded, setInventoryExpanded] = useState(false);
+  const [usersExpanded, setUsersExpanded] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("Todos");
   const [confirmAction, setConfirmAction] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
@@ -699,31 +711,33 @@ export function DashboardAdminPage() {
   const saveSale = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones
+    /* Validaciones del formulario de venta */
     if (!saleForm.cliente.trim()) {
-      alert("Por favor ingrese el nombre del cliente");
+      notify.warning("Por favor ingrese el nombre del cliente.");
       return;
     }
     if (!saleForm.documento.trim()) {
-      alert("Por favor ingrese el documento del cliente");
+      notify.warning("Por favor ingrese el documento del cliente.");
       return;
     }
     if (saleForm.productos.length === 0) {
-      alert("Debe agregar al menos un producto a la venta");
+      notify.warning("Debe agregar al menos un producto a la venta.");
       return;
     }
     if (!saleForm.metodoPago) {
-      alert("Por favor seleccione un método de pago");
+      notify.warning("Por favor seleccione un método de pago.");
       return;
     }
 
     if (editingSale) {
       setSales(sales.map(s => s.id === editingSale.id ? { ...saleForm } : s));
+      notify.success("Venta actualizada correctamente.");
     } else {
       setSales([...sales, { ...saleForm }]);
+      notify.success(`Venta registrada exitosamente.`);
     }
 
-    // Resetear formulario
+    /* Resetear formulario */
     setSaleForm({
       id: `V-${Date.now()}`,
       cliente: "",
@@ -793,41 +807,73 @@ export function DashboardAdminPage() {
 
   // ── INVENTARIO ────────────────────────────────────────────────────────────
   const [inventory, setInventory] = useState([
-    { id: 1, nombre: "Gafas Ray-Ban Aviador", categoria: "Gafas", stock: 45, precio: 659900 },
-    { id: 2, nombre: "Lentes Acuvue Mensuales", categoria: "Lentes", stock: 120, precio: 124900 },
-    { id: 3, nombre: "Gafas Oakley Deportivas", categoria: "Gafas", stock: 28, precio: 789900 },
-    { id: 4, nombre: "Gafas Wayfarer", categoria: "Gafas", stock: 62, precio: 539900 },
-    { id: 5, nombre: "Lentes Biofinity Tóricas", categoria: "Lentes", stock: 85, precio: 189900 },
-    { id: 6, nombre: "Lentes Air Optix", categoria: "Lentes", stock: 95, precio: 165900 },
-    { id: 7, nombre: "Gafas Gucci Clásicas", categoria: "Gafas", stock: 18, precio: 1250000 },
-    { id: 8, nombre: "Estuche Rígido Premium", categoria: "Accesorios", stock: 150, precio: 45900 },
-    { id: 9, nombre: "Líquido Limpiador 360ml", categoria: "Accesorios", stock: 200, precio: 28900 },
-    { id: 10, nombre: "Paño Microfibra Set 3", categoria: "Accesorios", stock: 180, precio: 15900 },
-    { id: 11, nombre: "Gafas Polo Sport", categoria: "Gafas", stock: 35, precio: 425900 },
-    { id: 12, nombre: "Lentes Freshlook Colorblends", categoria: "Lentes", stock: 65, precio: 139900 },
-    { id: 13, nombre: "Solución Multiuso 240ml", categoria: "Accesorios", stock: 175, precio: 32900 },
-    { id: 14, nombre: "Gafas de Sol Polarizadas", categoria: "Gafas", stock: 42, precio: 325900 },
-    { id: 15, nombre: "Cadena para Gafas Elegante", categoria: "Accesorios", stock: 90, precio: 18900 },
-  ]);
+    { id: 1,  nombre: "Gafas Ray-Ban Aviador",       categoria: "Gafas",      stockBodega: 27, stockLocal: 18, precio: 659900,  imagen: "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=300&fit=crop", marca: "Ray-Ban",     modelo: "Aviador",      descripcion: "Icónicas gafas de aviador con montura de metal dorado y lentes polarizados" },
+    { id: 2,  nombre: "Lentes Acuvue Mensuales",      categoria: "Lentes",     stockBodega: 80, stockLocal: 40, precio: 124900,  imagen: "https://images.unsplash.com/photo-1584483766114-2cea6facdf57?w=300&fit=crop", marca: "Acuvue",      modelo: "Mensuales",    descripcion: "Lentes de contacto mensuales de alta comodidad" },
+    { id: 3,  nombre: "Gafas Oakley Deportivas",      categoria: "Gafas",      stockBodega: 16, stockLocal: 12, precio: 789900,  imagen: "https://images.unsplash.com/photo-1514994960127-ed3ef9239d41?w=300&fit=crop", marca: "Oakley",      modelo: "Sport Pro",    descripcion: "Diseñadas para alto rendimiento con lentes resistentes a impactos" },
+    { id: 4,  nombre: "Gafas Wayfarer",               categoria: "Gafas",      stockBodega: 38, stockLocal: 24, precio: 539900,  imagen: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=300&fit=crop", marca: "Ray-Ban",     modelo: "Wayfarer",     descripcion: "Estilo clásico y atemporal con montura de acetato" },
+    { id: 5,  nombre: "Lentes Biofinity Tóricas",     categoria: "Lentes",     stockBodega: 52, stockLocal: 33, precio: 189900,  imagen: "https://images.unsplash.com/photo-1587558498822-6d36b09e77bf?w=300&fit=crop", marca: "CooperVision", modelo: "Biofinity",   descripcion: "Para astigmatismo, alta comodidad mensual" },
+    { id: 6,  nombre: "Lentes Air Optix",             categoria: "Lentes",     stockBodega: 60, stockLocal: 35, precio: 165900,  imagen: "https://images.unsplash.com/photo-1587558498822-6d36b09e77bf?w=300&fit=crop", marca: "Alcon",       modelo: "Air Optix",    descripcion: "Transpirabilidad superior, uso mensual" },
+    { id: 7,  nombre: "Gafas Gucci Clásicas",         categoria: "Gafas",      stockBodega: 10, stockLocal: 8,  precio: 1250000, imagen: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=300&fit=crop", marca: "Gucci",       modelo: "GG0396S",      descripcion: "Alta gama italiana con detalles dorados" },
+    { id: 8,  nombre: "Estuche Rígido Premium",       categoria: "Accesorios", stockBodega: 95, stockLocal: 55, precio: 45900,   imagen: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&fit=crop", marca: "LentSoft",    modelo: "Estuche Pro",  descripcion: "Estuche rígido con interior en terciopelo" },
+    { id: 9,  nombre: "Líquido Limpiador 360ml",      categoria: "Accesorios", stockBodega: 130, stockLocal: 70, precio: 28900,  imagen: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&fit=crop", marca: "OptiClean",   modelo: "360ml",        descripcion: "Solución limpiadora sin alcohol para monturas" },
+    { id: 10, nombre: "Paño Microfibra Set 3",        categoria: "Accesorios", stockBodega: 110, stockLocal: 70, precio: 15900,  imagen: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&fit=crop", marca: "LentSoft",    modelo: "Set 3",        descripcion: "Set de 3 paños de microfibra antirayones" },
+    { id: 11, nombre: "Gafas Polo Sport",             categoria: "Gafas",      stockBodega: 22, stockLocal: 13, precio: 425900,  imagen: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=300&fit=crop", marca: "Polo Ralph Lauren", modelo: "Sport", descripcion: "Elegancia deportiva con lentes UV400" },
+    { id: 12, nombre: "Lentes Freshlook Colorblends", categoria: "Lentes",     stockBodega: 40, stockLocal: 25, precio: 139900,  imagen: "https://images.unsplash.com/photo-1596633607026-ffe77e12ede5?w=300&fit=crop", marca: "Alcon",       modelo: "Colorblends",  descripcion: "Lentes de color para realzar tu mirada" },
+    { id: 13, nombre: "Solución Multiuso 240ml",      categoria: "Accesorios", stockBodega: 110, stockLocal: 65, precio: 32900,  imagen: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&fit=crop", marca: "ReNu",        modelo: "240ml",        descripcion: "Multiusos para limpiar, enjuagar y conservar" },
+    { id: 14, nombre: "Gafas de Sol Polarizadas",     categoria: "Gafas",      stockBodega: 26, stockLocal: 16, precio: 325900,  imagen: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=300&fit=crop", marca: "Maui Jim",    modelo: "Polarized",    descripcion: "Lentes polarizados de alta definición" },
+    { id: 15, nombre: "Cadena para Gafas Elegante",   categoria: "Accesorios", stockBodega: 58, stockLocal: 32, precio: 18900,   imagen: "https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?w=300&fit=crop", marca: "LentSoft",    modelo: "Gold Chain",   descripcion: "Cadena dorada antideslizante para gafas" },
+  ].map(p => ({ ...p, stock: p.stockBodega + p.stockLocal })));
+
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [productForm, setProductForm] = useState({ nombre: "", categoria: "Gafas", stock: 0, precio: 0, descripcion: "", marca: "", modelo: "" });
+  const emptyProductForm = { nombre: "", categoria: "Gafas", stockBodega: 0, stockLocal: 0, stock: 0, precio: 0, descripcion: "", marca: "", modelo: "", imagen: "" };
+  const [productForm, setProductForm] = useState({ ...emptyProductForm });
   const [inventorySearch, setInventorySearch] = useState("");
+  const [productSortCol, setProductSortCol] = useState<"nombre" | "categoria" | "stock" | "precio" | "">("");
+  const [productSortDir, setProductSortDir] = useState<"asc" | "desc">("asc");
+  const imgInputRef = useRef<HTMLInputElement>(null);
 
   const filteredInventory = (categoryFilter === "Todos" ? inventory : inventory.filter(item => item.categoria === categoryFilter))
     .filter(item =>
       item.nombre.toLowerCase().includes(inventorySearch.toLowerCase()) ||
-      item.categoria.toLowerCase().includes(inventorySearch.toLowerCase())
-    );
+      item.categoria.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+      (item.marca ?? "").toLowerCase().includes(inventorySearch.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (!productSortCol) return 0;
+      const va = a[productSortCol as keyof typeof a];
+      const vb = b[productSortCol as keyof typeof b];
+      const cmp = typeof va === "string" ? (va as string).localeCompare(vb as string) : (va as number) - (vb as number);
+      return productSortDir === "asc" ? cmp : -cmp;
+    });
 
-  const openAddProduct = () => { setEditingProduct(null); setProductForm({ nombre: "", categoria: "Gafas", stock: 0, precio: 0, descripcion: "", marca: "", modelo: "" }); setShowProductModal(true); };
-  const openEditProduct = (p: any) => { setEditingProduct(p); setProductForm({ nombre: p.nombre, categoria: p.categoria, stock: p.stock, precio: p.precio, descripcion: "", marca: "", modelo: "" }); setShowProductModal(true); };
+  const toggleSort = (col: typeof productSortCol) => {
+    if (productSortCol === col) setProductSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setProductSortCol(col); setProductSortDir("asc"); }
+  };
+
+  const SortIcon = ({ col }: { col: typeof productSortCol }) => (
+    <span className={`ml-1 text-xs ${productSortCol === col ? "text-white" : "text-purple-300"}`}>
+      {productSortCol === col ? (productSortDir === "asc" ? "▲" : "▼") : "⇅"}
+    </span>
+  );
+
+  const openAddProduct = () => { setEditingProduct(null); setProductForm({ ...emptyProductForm }); setShowProductModal(true); };
+  const openEditProduct = (p: any) => {
+    setEditingProduct(p);
+    setProductForm({ nombre: p.nombre, categoria: p.categoria, stockBodega: p.stockBodega ?? 0, stockLocal: p.stockLocal ?? 0, stock: p.stock, precio: p.precio, descripcion: p.descripcion ?? "", marca: p.marca ?? "", modelo: p.modelo ?? "", imagen: p.imagen ?? "" });
+    setShowProductModal(true);
+  };
   const saveProduct = (e: React.FormEvent) => {
     e.preventDefault();
+    const total = (productForm.stockBodega || 0) + (productForm.stockLocal || 0);
+    const saved = { ...productForm, stock: total };
     if (editingProduct) {
-      setInventory(inventory.map(p => p.id === editingProduct.id ? { ...p, nombre: productForm.nombre, categoria: productForm.categoria, stock: productForm.stock, precio: productForm.precio } : p));
+      setInventory(inventory.map(p => p.id === editingProduct.id ? { ...p, ...saved } : p));
+      notify.success("Producto actualizado correctamente.");
     } else {
-      setInventory([...inventory, { id: Date.now(), nombre: productForm.nombre, categoria: productForm.categoria, stock: productForm.stock, precio: productForm.precio }]);
+      setInventory([...inventory, { id: Date.now(), ...saved }]);
+      notify.success("Producto agregado al inventario.");
     }
     setShowProductModal(false);
   };
@@ -835,6 +881,14 @@ export function DashboardAdminPage() {
     message: "¿Eliminar este producto del inventario?",
     onConfirm: () => { setInventory(inventory.filter(p => p.id !== id)); setConfirmAction(null); }
   });
+  const removeProductImage = (id: number) => setInventory(inventory.map(p => p.id === id ? { ...p, imagen: "" } : p));
+  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setProductForm(f => ({ ...f, imagen: ev.target?.result as string }));
+    reader.readAsDataURL(file);
+  };
 
   // ── PROVEEDORES ───────────────────────────────────────────────────────────
   const [proveedores, setProveedores] = useState<Proveedor[]>([
@@ -952,46 +1006,184 @@ export function DashboardAdminPage() {
   const proveedoresPag = usePagination(filteredProveedores);
   const movimientosPag = usePagination(filteredMovimientos);
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 pb-20 md:pb-12">
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  // Sidebar nav items definition
+  const navItems = [
+    { id: "general" as const, icon: <LayoutDashboard className="w-5 h-5" />, label: "General" },
+    {
+      id: "inventario" as const, icon: <Package className="w-5 h-5" />, label: "Inventario",
+      sub: [
+        { id: "productos" as const, label: "Productos" },
+        { id: "proveedores" as const, label: "Proveedor" },
+        { id: "historial" as const, label: "Historial" },
+      ]
+    },
+    { id: "ventas" as const, icon: <Receipt className="w-5 h-5" />, label: "Ventas" },
+    { id: "citas" as const, icon: <Calendar className="w-5 h-5" />, label: "Citas" },
+    {
+      id: "usuarios" as const, icon: <Users className="w-5 h-5" />, label: "Usuarios",
+      sub: [
+        { id: "clientes" as const, label: "Clientes" },
+        { id: "trabajadores" as const, label: "Trabajadores" },
+      ]
+    },
+    { id: "facturas" as const, icon: <FileText className="w-5 h-5" />, label: "Facturas" },
+  ] as const;
 
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-purple-900 mb-2" style={{ fontSize: `${textSize * 2}rem` }}>Administración</h1>
-          <p className="text-purple-600" style={{ fontSize: `${textSize * 0.875}rem` }}>Gestiona tu negocio desde un solo lugar</p>
+  const activeLabelMap: Record<string, string> = {
+    general: "General", inventario: "Inventario", ventas: "Ventas",
+    citas: "Citas", usuarios: "Usuarios", facturas: "Facturas",
+  };
+
+  function SidebarContent({ onNav }: { onNav?: () => void }) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="px-5 py-6 border-b border-purple-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-purple-400/20 rounded-xl flex items-center justify-center">
+              <UserCog className="w-4 h-4 text-purple-200" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm leading-tight" style={{ fontFamily: "var(--font-primary)" }}>Administración</p>
+              <p className="text-purple-400 text-xs">Panel de control</p>
+            </div>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-2 sm:p-3 mb-6 sm:mb-8">
-          <div className="flex gap-2 sm:gap-3 justify-between mb-3 sm:mb-4" role="tablist">
-            {(["inventario", "citas", "usuarios"] as const).map((tab) => {
-              const icons = { inventario: <Package className="w-6 h-6 flex-shrink-0" />, citas: <Calendar className="w-6 h-6 flex-shrink-0" />, usuarios: <Users className="w-6 h-6 flex-shrink-0" /> };
-              const labels = { inventario: "Inventario", citas: "Citas", usuarios: "Usuarios" };
-              return (
-                <button key={tab} onClick={() => setActiveTab(tab)} role="tab" aria-selected={activeTab === tab}
-                  className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 min-w-0 ${activeTab === tab ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-md" : "bg-white text-purple-700 hover:bg-purple-50"}`}
-                  style={{ fontSize: `${textSize * 0.875}rem` }}>
-                  {icons[tab]}
-                  <span className="font-medium whitespace-nowrap text-center leading-tight">{labels[tab]}</span>
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            const hasSub = "sub" in item && item.sub;
+            const isExpanded = item.id === "inventario" ? inventoryExpanded : item.id === "usuarios" ? usersExpanded : false;
+
+            return (
+              <div key={item.id}>
+                <button
+                  onClick={() => {
+                    if (hasSub) {
+                      if (item.id === "inventario") setInventoryExpanded(v => !v);
+                      if (item.id === "usuarios") setUsersExpanded(v => !v);
+                    }
+                    setActiveTab(item.id);
+                    onNav?.();
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+                    isActive
+                      ? "bg-purple-600 text-white shadow-md"
+                      : "text-purple-300 hover:bg-purple-800 hover:text-white"
+                  }`}
+                >
+                  <span className={`flex-shrink-0 ${isActive ? "text-white" : "text-purple-400 group-hover:text-purple-200"}`}>
+                    {item.icon}
+                  </span>
+                  <span className="flex-1 text-left" style={{ fontFamily: "var(--font-secondary)" }}>{item.label}</span>
+                  {hasSub && (
+                    <span className="text-purple-400">
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </span>
+                  )}
                 </button>
-              );
-            })}
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {([
-              { id: "general", icon: <TrendingUp className="w-4 h-4" />, label: "General" },
-              { id: "ventas", icon: <Receipt className="w-4 h-4" />, label: "Ventas" },
-              { id: "trabajadores", icon: <UserCog className="w-4 h-4" />, label: "Trabajadores" },
-              { id: "facturas", icon: <FileText className="w-4 h-4" />, label: "Facturas" },
-            ] as const).map(({ id, icon, label }) => (
-              <button key={id} onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-2 py-2 px-4 rounded-xl whitespace-nowrap transition-all text-sm ${activeTab === id ? "bg-purple-100 text-purple-900 font-medium" : "bg-transparent text-purple-600 hover:bg-purple-50"}`}>
-                {icon}{label}
-              </button>
-            ))}
+
+                {hasSub && isExpanded && (
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-purple-700 pl-3">
+                    {item.sub.map((s) => {
+                      const isSubActive = item.id === "inventario"
+                        ? inventorySubTab === s.id
+                        : usersSubTab === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            if (item.id === "inventario") setInventorySubTab(s.id as any);
+                            if (item.id === "usuarios") setUsersSubTab(s.id as any);
+                            onNav?.();
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            isSubActive
+                              ? "bg-purple-500/30 text-white"
+                              : "text-purple-400 hover:text-purple-200 hover:bg-purple-800/50"
+                          }`}
+                          style={{ fontFamily: "var(--font-secondary)" }}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="px-4 py-4 border-t border-purple-800">
+          <p className="text-purple-500 text-xs text-center" style={{ fontFamily: "var(--font-secondary)" }}>LentSoft © 2026</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+    <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden lg:flex flex-col w-56 xl:w-64 bg-purple-900 flex-shrink-0 sticky top-0 h-screen">
+        <SidebarContent />
+      </aside>
+
+      {/* ── Mobile overlay ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile Sidebar drawer ── */}
+      <aside
+        className={`fixed left-0 top-0 h-full w-64 bg-purple-900 z-50 transform transition-transform duration-300 lg:hidden ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-end px-4 pt-4">
+          <button onClick={() => setSidebarOpen(false)} className="text-purple-400 hover:text-white p-1.5 rounded-lg hover:bg-purple-800">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <SidebarContent onNav={() => setSidebarOpen(false)} />
+      </aside>
+
+      {/* ── Main content ── */}
+      <div className="flex-1 min-w-0 flex flex-col">
+
+        {/* Mobile top-bar */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-purple-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 text-purple-700 hover:bg-purple-50 rounded-xl transition-colors"
+            aria-label="Abrir menú"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div>
+            <p className="text-purple-900 font-bold text-sm" style={{ fontFamily: "var(--font-primary)" }}>
+              {activeLabelMap[activeTab] || "Administración"}
+            </p>
+            <p className="text-purple-500 text-xs" style={{ fontFamily: "var(--font-secondary)" }}>Panel Admin</p>
           </div>
         </div>
+
+        {/* Page content */}
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {/* Section header */}
+          <div className="mb-6">
+            <h1 className="text-purple-900 font-bold" style={{ fontSize: `${textSize * 1.75}rem`, fontFamily: "var(--font-primary)" }}>
+              {activeLabelMap[activeTab] || "Administración"}
+            </h1>
+            <p className="text-purple-500 text-sm mt-0.5" style={{ fontFamily: "var(--font-secondary)" }}>
+              Gestiona tu negocio desde un solo lugar
+            </p>
+          </div>
 
         {/* ── GENERAL ── */}
         {activeTab === "general" && (
@@ -1056,20 +1248,19 @@ export function DashboardAdminPage() {
         {activeTab === "inventario" && (
           <div className="space-y-6">
 
-            {/* Sub-navigation buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Sub-navigation pills */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {([
-                { id: "productos", icon: <Package className="w-6 h-6" />, label: "Productos" },
-                { id: "proveedores", icon: <Truck className="w-6 h-6" />, label: "Proveedor" },
-                { id: "historial", icon: <History className="w-6 h-6" />, label: "Historial de Movimientos" },
-              ] as const).map(({ id, icon, label }) => (
+                { id: "productos" as const, icon: <Package className="w-4 h-4" />, label: "Productos" },
+                { id: "proveedores" as const, icon: <Truck className="w-4 h-4" />, label: "Proveedor" },
+                { id: "historial" as const, icon: <History className="w-4 h-4" />, label: "Historial de Movimientos" },
+              ]).map(({ id, icon, label }) => (
                 <button
                   key={id}
                   onClick={() => setInventorySubTab(id)}
-                  className={`flex items-center gap-3 px-5 py-4 rounded-2xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 shadow-md ${inventorySubTab === id ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-purple-200" : "bg-white text-purple-700 hover:bg-purple-50 border border-purple-100"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${inventorySubTab === id ? "bg-purple-600 text-white shadow-md" : "bg-white text-purple-700 hover:bg-purple-50 border border-purple-100 shadow-sm"}`}
                 >
-                  {icon}
-                  <span>{label}</span>
+                  {icon}<span>{label}</span>
                 </button>
               ))}
             </div>
@@ -1077,45 +1268,113 @@ export function DashboardAdminPage() {
             {/* ── PRODUCTOS sub-tab ── */}
             {inventorySubTab === "productos" && (
               <>
-                <div className="flex justify-end">
-                  <button onClick={openAddProduct} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-2xl transition-colors flex items-center gap-2 justify-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
-                    <Plus className="w-5 h-5" /><span className="hidden sm:inline">Nuevo Producto</span><span className="sm:hidden">Nuevo</span>
+                {/* Toolbar */}
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Category pills */}
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide flex-1">
+                    {(["Todos", "Gafas", "Lentes", "Accesorios"] as const).map(cat => (
+                      <button key={cat} onClick={() => setCategoryFilter(cat)}
+                        className={`px-4 py-2 rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-colors ${categoryFilter === cat ? "bg-purple-600 text-white" : "bg-white text-purple-700 border border-purple-200 hover:bg-purple-50"}`}>
+                        {cat === "Todos" ? `Todos (${inventory.length})` : `${cat} (${inventory.filter(i => i.categoria === cat).length})`}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={openAddProduct} className="flex-shrink-0 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-2xl transition-colors flex items-center gap-2 text-sm font-semibold shadow-md">
+                    <Plus className="w-4 h-4" /><span className="hidden sm:inline">Nuevo Producto</span><span className="sm:hidden">Nuevo</span>
                   </button>
                 </div>
 
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {(["Todos", "Gafas", "Lentes", "Accesorios"] as const).map(cat => (
-                    <button key={cat} onClick={() => setCategoryFilter(cat)}
-                      className={`px-4 py-2 rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-colors ${categoryFilter === cat ? "bg-purple-600 text-white" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}>
-                      {cat === "Todos" ? `Todos (${inventory.length})` : `${cat} (${inventory.filter(i => i.categoria === cat).length})`}
-                    </button>
-                  ))}
-                </div>
+                {/* ── DataTable ── */}
+                <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+                  <TableSearchBar search={inventorySearch} setSearch={setInventorySearch} placeholder="Buscar por nombre, marca, categoría..." />
 
-                {/* Desktop table */}
-                <div className="hidden lg:block bg-white rounded-3xl shadow-lg overflow-hidden">
-                  <TableSearchBar search={inventorySearch} setSearch={setInventorySearch} placeholder="Buscar producto, categoría..." />
-                  <div className="overflow-x-auto">
+                  {/* Desktop */}
+                  <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-purple-50">
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">ID</th>
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">Producto</th>
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">Categoría</th>
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">Stock</th>
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">Precio</th>
-                          <th className="text-left py-4 px-6 text-purple-900 font-medium">Acciones</th>
+                        <tr className="bg-gradient-to-r from-purple-700 to-purple-800">
+                          <th className="py-3 px-4 text-left text-white text-xs font-semibold w-16">Foto</th>
+                          <th className="py-3 px-4 text-left">
+                            <button onClick={() => toggleSort("nombre")} className="flex items-center text-white text-xs font-semibold hover:text-purple-200">
+                              Producto <SortIcon col="nombre" />
+                            </button>
+                          </th>
+                          <th className="py-3 px-4 text-left">
+                            <button onClick={() => toggleSort("categoria")} className="flex items-center text-white text-xs font-semibold hover:text-purple-200">
+                              Categoría <SortIcon col="categoria" />
+                            </button>
+                          </th>
+                          <th className="py-3 px-4 text-center text-white text-xs font-semibold">
+                            <div className="flex items-center justify-center gap-1"><Warehouse className="w-3.5 h-3.5" />Bodega</div>
+                          </th>
+                          <th className="py-3 px-4 text-center text-white text-xs font-semibold">
+                            <div className="flex items-center justify-center gap-1"><Store className="w-3.5 h-3.5" />Local</div>
+                          </th>
+                          <th className="py-3 px-4 text-center text-white text-xs font-semibold">Total</th>
+                          <th className="py-3 px-4 text-left">
+                            <button onClick={() => toggleSort("precio")} className="flex items-center text-white text-xs font-semibold hover:text-purple-200">
+                              Precio <SortIcon col="precio" />
+                            </button>
+                          </th>
+                          <th className="py-3 px-4 text-left text-white text-xs font-semibold">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {inventoryPag.slice.map((item) => (
-                          <tr key={item.id} className="border-b border-purple-50 hover:bg-purple-50/50">
-                            <td className="py-4 px-6 text-purple-900">#{item.id}</td>
-                            <td className="py-4 px-6 text-purple-900">{item.nombre}</td>
-                            <td className="py-4 px-6"><span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{item.categoria}</span></td>
-                            <td className="py-4 px-6"><span className={`font-medium ${item.stock < 30 ? "text-red-600" : "text-green-600"}`}>{item.stock} unidades</span></td>
-                            <td className="py-4 px-6 text-purple-900 font-medium">{formatPrice(item.precio)}</td>
-                            <td className="py-4 px-6">
+                        {inventoryPag.slice.length === 0 && (
+                          <tr><td colSpan={8} className="py-12 text-center text-purple-400">No se encontraron productos.</td></tr>
+                        )}
+                        {inventoryPag.slice.map((item, idx) => (
+                          <tr key={item.id} className={`border-b border-purple-50 hover:bg-purple-50/60 transition-colors ${idx % 2 === 0 ? "" : "bg-purple-50/20"}`}>
+                            {/* Foto */}
+                            <td className="py-3 px-4">
+                              <div className="relative group w-12 h-12 flex-shrink-0">
+                                {item.imagen ? (
+                                  <>
+                                    <img src={item.imagen} alt={item.nombre} className="w-12 h-12 rounded-xl object-cover border border-purple-100 shadow-sm" />
+                                    <button
+                                      onClick={() => removeProductImage(item.id)}
+                                      title="Eliminar imagen"
+                                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] font-bold"
+                                    >✕</button>
+                                  </>
+                                ) : (
+                                  <div className="w-12 h-12 rounded-xl bg-purple-100 border-2 border-dashed border-purple-300 flex items-center justify-center text-purple-400 text-xs text-center leading-tight">
+                                    Sin foto
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            {/* Producto */}
+                            <td className="py-3 px-4">
+                              <div className="font-semibold text-purple-900 text-sm">{item.nombre}</div>
+                              {item.marca && <div className="text-xs text-purple-500">{item.marca} · {item.modelo}</div>}
+                            </td>
+                            {/* Categoría */}
+                            <td className="py-3 px-4">
+                              <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{item.categoria}</span>
+                            </td>
+                            {/* Bodega */}
+                            <td className="py-3 px-4 text-center">
+                              <span className={`font-semibold text-sm ${(item.stockBodega ?? 0) < 15 ? "text-red-600" : "text-blue-700"}`}>
+                                {item.stockBodega ?? 0}
+                              </span>
+                            </td>
+                            {/* Local */}
+                            <td className="py-3 px-4 text-center">
+                              <span className={`font-semibold text-sm ${(item.stockLocal ?? 0) < 5 ? "text-orange-600" : "text-green-700"}`}>
+                                {item.stockLocal ?? 0}
+                              </span>
+                            </td>
+                            {/* Total */}
+                            <td className="py-3 px-4 text-center">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${item.stock < 30 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                                {item.stock}
+                              </span>
+                            </td>
+                            {/* Precio */}
+                            <td className="py-3 px-4 text-purple-900 font-semibold text-sm">{formatPrice(item.precio)}</td>
+                            {/* Acciones */}
+                            <td className="py-3 px-4">
                               <CrudActions onEdit={() => openEditProduct(item)} onDelete={() => deleteProduct(item.id)} />
                             </td>
                           </tr>
@@ -1123,49 +1382,69 @@ export function DashboardAdminPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Mobile cards */}
+                  <div className="lg:hidden divide-y divide-purple-50">
+                    {inventoryPag.slice.map((item) => (
+                      <div key={item.id} className="p-4 flex gap-3">
+                        {/* Thumbnail */}
+                        <div className="flex-shrink-0 relative group">
+                          {item.imagen ? (
+                            <>
+                              <img src={item.imagen} alt={item.nombre} className="w-16 h-16 rounded-xl object-cover border border-purple-100" />
+                              <button onClick={() => removeProductImage(item.id)} className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-[9px] flex items-center justify-center">✕</button>
+                            </>
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl bg-purple-100 border-2 border-dashed border-purple-300 flex items-center justify-center text-purple-400 text-[10px] text-center">Sin foto</div>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-1">
+                            <div>
+                              <h3 className="text-purple-900 font-semibold text-sm leading-tight truncate">{item.nombre}</h3>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{item.categoria}</span>
+                                {item.marca && <span className="text-xs text-purple-500">{item.marca}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          {/* Stock por ubicación */}
+                          <div className="flex gap-2 mt-2 mb-2">
+                            <div className="flex-1 bg-blue-50 rounded-lg p-1.5 text-center border border-blue-100">
+                              <div className="flex items-center justify-center gap-1 text-blue-600 mb-0.5"><Warehouse className="w-3 h-3" /><span className="text-[10px] font-medium">Bodega</span></div>
+                              <span className={`text-sm font-bold ${(item.stockBodega ?? 0) < 15 ? "text-red-600" : "text-blue-700"}`}>{item.stockBodega ?? 0}</span>
+                            </div>
+                            <div className="flex-1 bg-green-50 rounded-lg p-1.5 text-center border border-green-100">
+                              <div className="flex items-center justify-center gap-1 text-green-600 mb-0.5"><Store className="w-3 h-3" /><span className="text-[10px] font-medium">Local</span></div>
+                              <span className={`text-sm font-bold ${(item.stockLocal ?? 0) < 5 ? "text-orange-600" : "text-green-700"}`}>{item.stockLocal ?? 0}</span>
+                            </div>
+                            <div className="flex-1 bg-purple-50 rounded-lg p-1.5 text-center border border-purple-100">
+                              <div className="text-[10px] font-medium text-purple-600 mb-0.5">Total</div>
+                              <span className={`text-sm font-bold ${item.stock < 30 ? "text-red-600" : "text-purple-900"}`}>{item.stock}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-purple-900 font-bold text-sm">{formatPrice(item.precio)}</span>
+                            <div className="flex gap-1.5">
+                              <button onClick={() => openEditProduct(item)} className="flex items-center gap-1 py-1.5 px-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-xs font-medium"><Edit className="w-3.5 h-3.5" />Editar</button>
+                              <button onClick={() => deleteProduct(item.id)} className="py-1.5 px-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                   <TableFooter {...inventoryPag} />
                 </div>
 
-                {/* Mobile cards */}
-                <div className="lg:hidden space-y-3">
-                  {inventoryPag.slice.map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl shadow-md overflow-hidden border border-purple-100">
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs text-purple-600 font-medium">#{item.id}</span>
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{item.categoria}</span>
-                            </div>
-                            <h3 className="text-purple-900 font-medium text-base leading-tight">{item.nombre}</h3>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <div className="bg-purple-50 rounded-xl p-3">
-                            <div className="text-xs text-purple-600 mb-1">Stock</div>
-                            <div className={`font-bold text-base ${item.stock < 30 ? "text-red-600" : "text-green-600"}`}>{item.stock}</div>
-                            <div className="text-xs text-purple-500">unidades</div>
-                          </div>
-                          <div className="bg-purple-50 rounded-xl p-3">
-                            <div className="text-xs text-purple-600 mb-1">Precio</div>
-                            <div className="font-bold text-base text-purple-900">{formatPrice(item.precio)}</div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => openEditProduct(item)} className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors">
-                            <Edit className="w-4 h-4" /><span className="text-sm font-medium">Editar</span>
-                          </button>
-                          <button onClick={() => deleteProduct(item.id)} className="py-2.5 px-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="h-1 bg-purple-100">
-                        <div className={`h-full ${item.stock < 30 ? "bg-red-500" : "bg-green-500"}`} style={{ width: `${Math.min((item.stock / 150) * 100, 100)}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                  <TableFooter {...inventoryPag} />
+                {/* Legend */}
+                <div className="flex flex-wrap gap-3 text-xs text-purple-600">
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" />Stock crítico (&lt;30 total)</div>
+                  <div className="flex items-center gap-1.5"><Warehouse className="w-3.5 h-3.5 text-blue-600" />Bodega: almacén principal</div>
+                  <div className="flex items-center gap-1.5"><Store className="w-3.5 h-3.5 text-green-600" />Local: punto de venta</div>
+                  <div className="flex items-center gap-1.5 ml-auto text-purple-400">Hover sobre foto → eliminar imagen</div>
                 </div>
               </>
             )}
@@ -1351,107 +1630,131 @@ export function DashboardAdminPage() {
         {/* ── USUARIOS ── */}
         {activeTab === "usuarios" && (
           <div className="space-y-6">
-            <div className="flex justify-end">
-              <button onClick={openAddUser} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-2xl transition-colors flex items-center gap-2 justify-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
-                <Plus className="w-5 h-5" /><span className="hidden sm:inline">Nuevo Usuario</span><span className="sm:hidden">Nuevo</span>
+            {/* Sub-tab pills */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setUsersSubTab("clientes")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${usersSubTab === "clientes" ? "bg-purple-600 text-white shadow-md" : "bg-white text-purple-700 hover:bg-purple-50 border border-purple-100 shadow-sm"}`}
+              >
+                <Users className="w-4 h-4" /> Clientes
               </button>
-            </div>
-
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-              <TableSearchBar search={userSearch} setSearch={setUserSearch} placeholder="Buscar por nombre o email..." />
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-purple-50">
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Nombre</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Email</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden lg:table-cell">Teléfono</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden md:table-cell">Rol</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden sm:table-cell">Pedidos</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden xl:table-cell">Última Compra</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usersPag.slice.map((user) => (
-                      <tr key={user.id} className="border-b border-purple-50 hover:bg-purple-50/50">
-                        <td className="py-4 px-6 text-purple-900 font-medium">{user.nombre}</td>
-                        <td className="py-4 px-6 text-purple-900 text-sm">{user.email}</td>
-                        <td className="py-4 px-6 text-purple-900 text-sm hidden lg:table-cell">{user.telefono}</td>
-                        <td className="py-4 px-6 hidden md:table-cell">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                            user.rol === "administrador" ? "bg-purple-100 text-purple-700 border border-purple-200" :
-                            user.rol === "vendedor" ? "bg-blue-100 text-blue-700 border border-blue-200" :
-                            user.rol === "trabajador" ? "bg-green-100 text-green-700 border border-green-200" :
-                            "bg-gray-100 text-gray-700 border border-gray-200"
-                          }`}>
-                            {user.rol || "Sin rol"}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 hidden sm:table-cell">
-                          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">{user.pedidos}</span>
-                        </td>
-                        <td className="py-4 px-6 text-purple-900 text-sm hidden xl:table-cell">{new Date(user.ultimaCompra).toLocaleDateString("es-CO")}</td>
-                        <td className="py-4 px-6">
-                          <CrudActions onEdit={() => openEditUser(user)} onDelete={() => deleteUser(user.id)} />
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredUsers.length === 0 && (
-                      <tr><td colSpan={7} className="py-12 text-center text-purple-400">No se encontraron usuarios.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <TableFooter {...usersPag} />
-            </div>
-          </div>
-        )}
-
-        {/* ── TRABAJADORES ── */}
-        {activeTab === "trabajadores" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-purple-900" style={{ fontSize: `${textSize * 1.75}rem` }}>Gestión de Trabajadores</h2>
-              <button onClick={openAddEmployee} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-2xl transition-colors flex items-center gap-2">
-                <Plus className="w-5 h-5" /><span className="hidden sm:inline">Nuevo Empleado</span><span className="sm:hidden">Nuevo</span>
+              <button
+                onClick={() => setUsersSubTab("trabajadores")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${usersSubTab === "trabajadores" ? "bg-purple-600 text-white shadow-md" : "bg-white text-purple-700 hover:bg-purple-50 border border-purple-100 shadow-sm"}`}
+              >
+                <UserCheck className="w-4 h-4" /> Trabajadores
               </button>
+              <div className="flex-1" />
+              {usersSubTab === "clientes" && (
+                <button onClick={openAddUser} className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  <Plus className="w-4 h-4" /><span className="hidden sm:inline">Nuevo Cliente</span><span className="sm:hidden">Nuevo</span>
+                </button>
+              )}
+              {usersSubTab === "trabajadores" && (
+                <button onClick={openAddEmployee} className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  <Plus className="w-4 h-4" /><span className="hidden sm:inline">Nuevo Empleado</span><span className="sm:hidden">Nuevo</span>
+                </button>
+              )}
             </div>
 
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-              <TableSearchBar search={employeeSearch} setSearch={setEmployeeSearch} placeholder="Buscar por nombre, email o rol..." />
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-purple-50">
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Nombre</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Rol</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden md:table-cell">Email</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden lg:table-cell">Teléfono</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium hidden sm:table-cell">Especialidad</th>
-                      <th className="text-left py-4 px-6 text-purple-900 font-medium">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employeesPag.slice.map((emp) => (
-                      <tr key={emp.id} className="border-b border-purple-50 hover:bg-purple-50/50">
-                        <td className="py-4 px-6 text-purple-900 font-medium">{emp.nombre}</td>
-                        <td className="py-4 px-6">
-                          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{emp.rol}</span>
-                        </td>
-                        <td className="py-4 px-6 text-purple-900 text-sm hidden md:table-cell">{emp.email}</td>
-                        <td className="py-4 px-6 text-purple-900 text-sm hidden lg:table-cell">{emp.telefono}</td>
-                        <td className="py-4 px-6 text-purple-900 text-sm hidden sm:table-cell">{emp.especialidad}</td>
-                        <td className="py-4 px-6">
-                          <CrudActions onEdit={() => openEditEmployee(emp)} onDelete={() => deleteEmployee(emp.id)} />
-                        </td>
+            {/* ── Clientes ── */}
+            {usersSubTab === "clientes" && (
+              <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+                <div className="flex items-center gap-3 px-6 py-4 bg-purple-50 border-b border-purple-100">
+                  <Users className="w-5 h-5 text-purple-600" />
+                  <h2 className="text-purple-900 font-semibold" style={{ fontSize: `${textSize * 1.1}rem` }}>Clientes registrados</h2>
+                </div>
+                <TableSearchBar search={userSearch} setSearch={setUserSearch} placeholder="Buscar por nombre o email..." />
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-purple-50">
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Nombre</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Email</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden lg:table-cell">Teléfono</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden md:table-cell">Rol de sistema</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden sm:table-cell">Pedidos</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden xl:table-cell">Última Compra</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {usersPag.slice.map((user) => (
+                        <tr key={user.id} className="border-b border-purple-50 hover:bg-purple-50/50">
+                          <td className="py-4 px-6 text-purple-900 font-medium">{user.nombre}</td>
+                          <td className="py-4 px-6 text-purple-900 text-sm">{user.email}</td>
+                          <td className="py-4 px-6 text-purple-900 text-sm hidden lg:table-cell">{user.telefono}</td>
+                          <td className="py-4 px-6 hidden md:table-cell">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                              user.rol === "administrador" ? "bg-purple-100 text-purple-700 border border-purple-200" :
+                              user.rol === "vendedor" ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                              user.rol === "trabajador" ? "bg-green-100 text-green-700 border border-green-200" :
+                              "bg-gray-100 text-gray-700 border border-gray-200"
+                            }`}>{user.rol || "Sin rol"}</span>
+                          </td>
+                          <td className="py-4 px-6 hidden sm:table-cell">
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">{user.pedidos}</span>
+                          </td>
+                          <td className="py-4 px-6 text-purple-900 text-sm hidden xl:table-cell">{new Date(user.ultimaCompra).toLocaleDateString("es-CO")}</td>
+                          <td className="py-4 px-6">
+                            <CrudActions onEdit={() => openEditUser(user)} onDelete={() => deleteUser(user.id)} />
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredUsers.length === 0 && (
+                        <tr><td colSpan={7} className="py-12 text-center text-purple-400">No se encontraron clientes.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <TableFooter {...usersPag} />
               </div>
-              <TableFooter {...employeesPag} />
-            </div>
+            )}
+
+            {/* ── Trabajadores ── */}
+            {usersSubTab === "trabajadores" && (
+              <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+                <div className="flex items-center gap-3 px-6 py-4 bg-purple-50 border-b border-purple-100">
+                  <UserCheck className="w-5 h-5 text-purple-600" />
+                  <h2 className="text-purple-900 font-semibold" style={{ fontSize: `${textSize * 1.1}rem` }}>Personal del establecimiento</h2>
+                </div>
+                <TableSearchBar search={employeeSearch} setSearch={setEmployeeSearch} placeholder="Buscar por nombre, email o rol..." />
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-purple-50">
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Nombre</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Rol</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden md:table-cell">Email</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden lg:table-cell">Teléfono</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium hidden sm:table-cell">Especialidad</th>
+                        <th className="text-left py-4 px-6 text-purple-900 font-medium">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employeesPag.slice.map((emp) => (
+                        <tr key={emp.id} className="border-b border-purple-50 hover:bg-purple-50/50">
+                          <td className="py-4 px-6 text-purple-900 font-medium">{emp.nombre}</td>
+                          <td className="py-4 px-6">
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{emp.rol}</span>
+                          </td>
+                          <td className="py-4 px-6 text-purple-900 text-sm hidden md:table-cell">{emp.email}</td>
+                          <td className="py-4 px-6 text-purple-900 text-sm hidden lg:table-cell">{emp.telefono}</td>
+                          <td className="py-4 px-6 text-purple-900 text-sm hidden sm:table-cell">{emp.especialidad}</td>
+                          <td className="py-4 px-6">
+                            <CrudActions onEdit={() => openEditEmployee(emp)} onDelete={() => deleteEmployee(emp.id)} />
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredEmployees.length === 0 && (
+                        <tr><td colSpan={6} className="py-12 text-center text-purple-400">No se encontraron trabajadores.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <TableFooter {...employeesPag} />
+              </div>
+            )}
           </div>
         )}
 
@@ -1563,7 +1866,9 @@ export function DashboardAdminPage() {
             </div>
           </div>
         )}
-      </div>
+        </div>{/* end page content */}
+      </div>{/* end right column */}
+    </div>
 
       {/* ── MODAL USUARIO ── */}
       {showUserModal && (
@@ -1853,8 +2158,8 @@ export function DashboardAdminPage() {
       {/* ── MODAL PRODUCTO ── */}
       {showProductModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between p-6 pb-4 border-b border-purple-100">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-start justify-between p-6 pb-4 border-b border-purple-100 sticky top-0 bg-white z-10 rounded-t-3xl">
               <div>
                 <h2 className="text-purple-900 font-bold text-lg">{editingProduct ? "Editar Producto" : "Nuevo Producto"}</h2>
                 <p className="text-purple-500 text-sm mt-0.5">Completa los campos para {editingProduct ? "actualizar" : "añadir"} el producto</p>
@@ -1865,6 +2170,74 @@ export function DashboardAdminPage() {
             </div>
             <div className="p-6">
               <form onSubmit={saveProduct} className="space-y-5">
+
+                {/* ── Foto del producto ── */}
+                <div className="bg-purple-50 rounded-2xl p-5">
+                  <h3 className="text-purple-900 font-semibold mb-4 flex items-center gap-2"><ImagePlus className="w-5 h-5" />Foto del Producto</h3>
+                  <div className="flex flex-col sm:flex-row gap-4 items-start">
+                    {/* Preview */}
+                    <div className="flex-shrink-0">
+                      {productForm.imagen ? (
+                        <div className="relative group">
+                          <img src={productForm.imagen} alt="Preview" className="w-28 h-28 rounded-2xl object-cover border-2 border-purple-200 shadow-md" />
+                          <button
+                            type="button"
+                            onClick={() => setProductForm(f => ({ ...f, imagen: "" }))}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-md text-xs font-bold"
+                            title="Eliminar imagen"
+                          >✕</button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => imgInputRef.current?.click()}
+                          className="w-28 h-28 rounded-2xl border-2 border-dashed border-purple-300 bg-white flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors"
+                        >
+                          <ImagePlus className="w-8 h-8 text-purple-400" />
+                          <span className="text-xs text-purple-500 text-center px-2">Clic para subir</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Controls */}
+                    <div className="flex-1 space-y-3">
+                      <input
+                        ref={imgInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageFile}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => imgInputRef.current?.click()}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors"
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                        {productForm.imagen ? "Cambiar imagen" : "Subir desde dispositivo"}
+                      </button>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-3 flex items-center text-purple-400 text-xs">URL:</span>
+                        <input
+                          type="url"
+                          value={productForm.imagen}
+                          onChange={e => setProductForm(f => ({ ...f, imagen: e.target.value }))}
+                          placeholder="https://... (pegar URL de imagen)"
+                          className={`${inputCls} pl-10 text-sm`}
+                        />
+                      </div>
+                      {productForm.imagen && (
+                        <button
+                          type="button"
+                          onClick={() => setProductForm(f => ({ ...f, imagen: "" }))}
+                          className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />Eliminar imagen
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Info básica ── */}
                 <div className="bg-purple-50 rounded-2xl p-5">
                   <h3 className="text-purple-900 font-semibold mb-4 flex items-center gap-2"><Package className="w-5 h-5" />Información Básica</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1886,25 +2259,68 @@ export function DashboardAdminPage() {
                     </FormField>
                   </div>
                 </div>
+
+                {/* ── Stock por ubicación ── */}
                 <div className="bg-purple-50 rounded-2xl p-5">
-                  <h3 className="text-purple-900 font-semibold mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5" />Inventario y Precio</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField label="Stock" required>
-                      <input type="number" min="0" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: parseInt(e.target.value) || 0 })} className={inputCls} required />
+                  <h3 className="text-purple-900 font-semibold mb-1 flex items-center gap-2"><Warehouse className="w-5 h-5" />Stock por Ubicación</h3>
+                  <p className="text-purple-500 text-xs mb-4">Registra cuántas unidades hay en cada punto de almacenamiento</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                    <FormField label="Stock en Bodega">
+                      <div className="relative">
+                        <Warehouse className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <input
+                          type="number" min="0"
+                          value={productForm.stockBodega}
+                          onChange={e => setProductForm({ ...productForm, stockBodega: parseInt(e.target.value) || 0 })}
+                          className={`${inputCls} pl-9`}
+                          placeholder="0"
+                        />
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1">Almacén / depósito principal</p>
                     </FormField>
-                    <FormField label="Precio (COP)" required>
-                      <input type="number" min="0" step="100" value={productForm.precio} onChange={e => setProductForm({ ...productForm, precio: parseInt(e.target.value) || 0 })} className={inputCls} required />
-                      {productForm.precio > 0 && <p className="text-purple-500 text-xs mt-1">{formatPrice(productForm.precio)}</p>}
+                    <FormField label="Stock en Local">
+                      <div className="relative">
+                        <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                        <input
+                          type="number" min="0"
+                          value={productForm.stockLocal}
+                          onChange={e => setProductForm({ ...productForm, stockLocal: parseInt(e.target.value) || 0 })}
+                          className={`${inputCls} pl-9`}
+                          placeholder="0"
+                        />
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">Punto de venta / exhibición</p>
                     </FormField>
                   </div>
+                  {/* Total preview */}
+                  <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-purple-200">
+                    <span className="text-purple-700 text-sm font-medium">Stock total</span>
+                    <span className={`text-lg font-bold ${((productForm.stockBodega || 0) + (productForm.stockLocal || 0)) < 30 ? "text-red-600" : "text-purple-900"}`}>
+                      {(productForm.stockBodega || 0) + (productForm.stockLocal || 0)} unidades
+                    </span>
+                  </div>
                 </div>
+
+                {/* ── Precio ── */}
+                <div className="bg-purple-50 rounded-2xl p-5">
+                  <h3 className="text-purple-900 font-semibold mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5" />Precio</h3>
+                  <FormField label="Precio (COP)" required>
+                    <input type="number" min="0" step="100" value={productForm.precio} onChange={e => setProductForm({ ...productForm, precio: parseInt(e.target.value) || 0 })} className={inputCls} required />
+                    {productForm.precio > 0 && <p className="text-purple-500 text-xs mt-1 font-medium">{formatPrice(productForm.precio)}</p>}
+                  </FormField>
+                </div>
+
+                {/* ── Descripción ── */}
                 <div className="bg-purple-50 rounded-2xl p-5">
                   <h3 className="text-purple-900 font-semibold mb-4 flex items-center gap-2"><FileText className="w-5 h-5" />Descripción</h3>
                   <textarea value={productForm.descripcion} onChange={e => setProductForm({ ...productForm, descripcion: e.target.value })} className={`${inputCls} resize-none`} rows={3} placeholder="Características principales del producto..." />
                 </div>
-                <div className="flex gap-3 pt-2 border-t-2 border-purple-100">
+
+                <div className="flex gap-3 pt-2 border-t-2 border-purple-100 sticky bottom-0 bg-white pb-2">
                   <button type="button" onClick={() => setShowProductModal(false)} className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-purple-900 font-medium transition-colors">Cancelar</button>
-                  <button type="submit" className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium transition-all shadow-lg">{editingProduct ? "Actualizar Producto" : "Agregar Producto"}</button>
+                  <button type="submit" className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold transition-all shadow-lg">
+                    {editingProduct ? "Actualizar Producto" : "Agregar Producto"}
+                  </button>
                 </div>
               </form>
             </div>
@@ -2216,6 +2632,6 @@ export function DashboardAdminPage() {
       {confirmAction && (
         <ConfirmDialog message={confirmAction.message} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} />
       )}
-    </main>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { X, Calendar, Clock, User as UserIcon, AlertCircle } from "lucide-react";
 import { useState, useMemo } from "react";
+import { notify } from "../../utils/notify";
 
 interface Appointment {
   id: number;
@@ -56,12 +57,11 @@ export function NewAppointmentModal({ isOpen, onClose, textSize, existingAppoint
     e.preventDefault();
 
     if (isSlotOccupied(formData.date, formData.time, formData.doctor)) {
-      alert("Este horario ya está ocupado. Por favor, selecciona otro horario o profesional.");
+      notify.warning("Este horario ya está ocupado. Por favor, selecciona otro horario o profesional.");
       return;
     }
 
-    console.log("Nueva cita:", formData);
-    alert("¡Cita agendada exitosamente!");
+    notify.success("¡Cita agendada exitosamente! Recibirás una confirmación pronto.");
 
     onClose();
     setFormData({

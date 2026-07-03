@@ -12,35 +12,36 @@ export function RootLayout() {
   const [textSize, setTextSize] = useState(1);
 
   return (
-    <div 
-      className={`
-        min-h-screen transition-colors duration-300
-        ${darkMode 
-          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
-          : 'bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200'
-        }
-        ${highContrast && !darkMode ? 'contrast-125' : ''}
-        ${highContrast && darkMode ? 'bg-black' : ''}
-      `}
+    <div
+      className={[
+        "min-h-screen transition-colors duration-300",
+        darkMode
+          ? "dark bg-gray-950"
+          : "bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200",
+        highContrast && !darkMode ? "contrast-125" : "",
+        highContrast && darkMode ? "!bg-black" : "",
+      ].join(" ")}
     >
-      <Header textSize={textSize} />
-      
-      <Outlet context={{ textSize, highContrast }} />
+      <Header textSize={textSize} darkMode={darkMode} />
+
+      <Outlet context={{ textSize, highContrast, darkMode }} />
 
       <Footer textSize={textSize} />
 
-      <AccessibilityPanel
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        highContrast={highContrast}
-        setHighContrast={setHighContrast}
-        textSize={textSize}
-        setTextSize={setTextSize}
-      />
+      {/* Stacked FAB group — accessibility bottom, chatbot above */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col-reverse items-end gap-3">
+        <AccessibilityPanel
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          highContrast={highContrast}
+          setHighContrast={setHighContrast}
+          textSize={textSize}
+          setTextSize={setTextSize}
+        />
+        <Chatbot />
+      </div>
 
       <CartSidebar textSize={textSize} />
-
-      <Chatbot />
     </div>
   );
 }

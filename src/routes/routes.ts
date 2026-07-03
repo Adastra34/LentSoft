@@ -1,4 +1,4 @@
-import { createHashRouter } from "react-router";
+import { createBrowserRouter } from "react-router";
 import { RootLayout } from "../views/pages/RootLayout";
 import { HomePage } from "../views/pages/HomePage";
 import { TiendaPage } from "../views/pages/TiendaPage";
@@ -12,8 +12,14 @@ import { DashboardAdminPage } from "../views/pages/DashboardAdminPage";
 import { CategoryPage } from "../views/pages/CategoryPage";
 import { CheckoutPage } from "../views/pages/CheckoutPage";
 import { VirtualTryOnPage } from "../views/pages/VirtualTryOnPage";
+import { MockupDocumentPage } from "../views/pages/MockupDocumentPage";
+import { DashboardOptometraPage } from "../views/pages/DashboardOptometraPage";
 
-export const router = createHashRouter([
+export const router = createBrowserRouter([
+  {
+    path: "/mockup-doc",
+    Component: MockupDocumentPage,
+  },
   {
     path: "/",
     Component: RootLayout,
@@ -50,9 +56,13 @@ export const router = createHashRouter([
         path: "dashboard",
         Component: DashboardUsuarioPage
       },
-      { 
-        path: "dashboard-admin", 
+      {
+        path: "dashboard-admin",
         Component: DashboardAdminPage
+      },
+      {
+        path: "dashboard-optometra",
+        Component: DashboardOptometraPage,
       },
       { 
         path: "login", 

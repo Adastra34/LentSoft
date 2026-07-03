@@ -16,7 +16,9 @@ import {
   Eye,
   Package,
   Truck,
-  CheckCircle
+  CheckCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import { products, formatPrice } from "../../models/data/products";
 import { NewAppointmentModal } from "../components/NewAppointmentModal";
@@ -148,6 +150,7 @@ export function DashboardUsuarioPage() {
   const [activeTab, setActiveTab] = useState<"citas" | "favoritos" | "perfil" | "pedidos">("citas");
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mock favorite products
   const favoriteProducts = products.filter(p => p.isBestSeller).slice(0, 4);
@@ -158,98 +161,95 @@ export function DashboardUsuarioPage() {
     );
   };
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 pb-20 md:pb-12">
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1
-            className="text-purple-900 mb-2"
-            style={{ fontSize: `${textSize * 2}rem` }}
-          >
-            Mi Cuenta
-          </h1>
-          <p
-            className="text-purple-600"
-            style={{ fontSize: `${textSize * 0.875}rem` }}
-          >
-            Administra tus citas, pedidos, productos favoritos y perfil
-          </p>
-        </div>
+  const userNavItems = [
+    { id: "citas" as const,     icon: <Calendar className="w-5 h-5" />,    label: "Mis Citas" },
+    { id: "pedidos" as const,   icon: <Package className="w-5 h-5" />,     label: "Mis Pedidos" },
+    { id: "favoritos" as const, icon: <Heart className="w-5 h-5" />,       label: "Favoritos" },
+    { id: "perfil" as const,    icon: <User className="w-5 h-5" />,        label: "Mi Perfil" },
+  ];
 
-        {/* Tab Navigation - Mobile Optimized */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-2 sm:p-3 mb-6 sm:mb-8">
-          <div className="flex gap-2 sm:gap-3 justify-between" role="tablist">
-            <button
-              onClick={() => setActiveTab("citas")}
-              className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-3 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 min-w-0 ${
-                activeTab === "citas"
-                  ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-md"
-                  : "bg-white text-purple-700 hover:bg-purple-50"
-              }`}
-              style={{ fontSize: `${textSize * 0.875}rem` }}
-              role="tab"
-              aria-selected={activeTab === "citas"}
-              aria-label="Mis Citas"
-            >
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap text-center leading-tight text-xs sm:text-sm">
-                Citas
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("pedidos")}
-              className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-3 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 min-w-0 ${
-                activeTab === "pedidos"
-                  ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-md"
-                  : "bg-white text-purple-700 hover:bg-purple-50"
-              }`}
-              style={{ fontSize: `${textSize * 0.875}rem` }}
-              role="tab"
-              aria-selected={activeTab === "pedidos"}
-              aria-label="Mis Pedidos"
-            >
-              <Package className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap text-center leading-tight text-xs sm:text-sm">
-                Pedidos
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("favoritos")}
-              className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-3 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 min-w-0 ${
-                activeTab === "favoritos"
-                  ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-md"
-                  : "bg-white text-purple-700 hover:bg-purple-50"
-              }`}
-              style={{ fontSize: `${textSize * 0.875}rem` }}
-              role="tab"
-              aria-selected={activeTab === "favoritos"}
-              aria-label="Favoritos"
-            >
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap text-center leading-tight text-xs sm:text-sm">
-                Favoritos
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("perfil")}
-              className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-3 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 min-w-0 ${
-                activeTab === "perfil"
-                  ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-md"
-                  : "bg-white text-purple-700 hover:bg-purple-50"
-              }`}
-              style={{ fontSize: `${textSize * 0.875}rem` }}
-              role="tab"
-              aria-selected={activeTab === "perfil"}
-              aria-label="Mi Perfil"
-            >
-              <User className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="font-medium whitespace-nowrap text-center leading-tight text-xs sm:text-sm">
-                Perfil
-              </span>
-            </button>
+  const activeLabelUser: Record<string, string> = {
+    citas: "Mis Citas", pedidos: "Mis Pedidos", favoritos: "Favoritos", perfil: "Mi Perfil",
+  };
+
+  function UserSidebarContent({ onNav }: { onNav?: () => void }) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="px-5 py-6 border-b border-purple-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-purple-400/20 rounded-xl flex items-center justify-center">
+              <User className="w-5 h-5 text-purple-200" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-primary)" }}>Mi Cuenta</p>
+              <p className="text-purple-400 text-xs" style={{ fontFamily: "var(--font-secondary)" }}>Panel personal</p>
+            </div>
           </div>
         </div>
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {userNavItems.map(({ id, icon, label }) => (
+            <button
+              key={id}
+              onClick={() => { setActiveTab(id); onNav?.(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+                activeTab === id
+                  ? "bg-purple-600 text-white shadow-md"
+                  : "text-purple-300 hover:bg-purple-800 hover:text-white"
+              }`}
+            >
+              <span className={`flex-shrink-0 ${activeTab === id ? "text-white" : "text-purple-400 group-hover:text-purple-200"}`}>{icon}</span>
+              <span style={{ fontFamily: "var(--font-secondary)" }}>{label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="px-4 py-4 border-t border-purple-800">
+          <p className="text-purple-500 text-xs text-center" style={{ fontFamily: "var(--font-secondary)" }}>LentSoft © 2026</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex flex-col w-56 xl:w-64 bg-purple-900 flex-shrink-0 sticky top-0 h-screen">
+        <UserSidebarContent />
+      </aside>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* Mobile drawer */}
+      <aside className={`fixed left-0 top-0 h-full w-64 bg-purple-900 z-50 transform transition-transform duration-300 lg:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-end px-4 pt-4">
+          <button onClick={() => setSidebarOpen(false)} className="text-purple-400 hover:text-white p-1.5 rounded-lg hover:bg-purple-800">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <UserSidebarContent onNav={() => setSidebarOpen(false)} />
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* Mobile top bar */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-purple-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 text-purple-700 hover:bg-purple-50 rounded-xl transition-colors" aria-label="Abrir menú">
+            <Menu className="w-5 h-5" />
+          </button>
+          <div>
+            <p className="text-purple-900 font-bold text-sm" style={{ fontFamily: "var(--font-primary)" }}>{activeLabelUser[activeTab]}</p>
+            <p className="text-purple-500 text-xs" style={{ fontFamily: "var(--font-secondary)" }}>Mi Cuenta</p>
+          </div>
+        </div>
+
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 hidden lg:block">
+            <h1 className="text-purple-900 font-bold" style={{ fontSize: `${textSize * 1.75}rem`, fontFamily: "var(--font-primary)" }}>{activeLabelUser[activeTab]}</h1>
+            <p className="text-purple-500 text-sm mt-0.5" style={{ fontFamily: "var(--font-secondary)" }}>Administra tu cuenta personal</p>
+          </div>
 
         {/* Tab Content */}
         {activeTab === "citas" && (
@@ -781,7 +781,8 @@ export function DashboardUsuarioPage() {
             </div>
           </div>
         )}
-      </div>
+        </div>{/* end flex-1 content */}
+      </div>{/* end right column */}
 
       {/* New Appointment Modal */}
       <NewAppointmentModal
@@ -790,6 +791,6 @@ export function DashboardUsuarioPage() {
         textSize={textSize}
         existingAppointments={appointments}
       />
-    </main>
+    </div>
   );
 }
